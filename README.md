@@ -1,3 +1,7 @@
 # Miniu-Virtual-Pet
 
-lets hf boi
+Archived Build
+
+Filled with useless and disconnected features, regrettable design decisions, and questionable coding practices.
+
+Nakakasuka yuckckkk
