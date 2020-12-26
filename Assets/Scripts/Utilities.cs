@@ -58,15 +58,15 @@ public class Utilities : MonoBehaviour {
 
     public static void IterateRepeatedInteractionCounter()
     {
-        if (HandleSupervisor.lastTouchedObj == HandleSupervisor.currentTouchedObj)
+        if (SupervisorAndUI.lastTouchedObj == SupervisorAndUI.currentTouchedObj)
         {
-            HandleSupervisor.supervisorActionRepeatedCounter++;
+            SupervisorAndUI.supervisorActionRepeatedCounter++;
         }
     }
 
-    public static int FramesToSeconds(int frames)
+    public static int ToDeltaTime(int frames)
     {
-        return Convert.ToInt32(System.Math.Ceiling((frames / 60) * Time.deltaTime));
+        return Convert.ToInt32(frames * Time.deltaTime);
     }
 
     public static void AddObjectToInventory(string obj)

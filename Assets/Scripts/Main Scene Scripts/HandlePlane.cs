@@ -39,18 +39,18 @@ public class HandlePlane : MonoBehaviour {
                     Utilities.SetLastPlaneClickedPosition(hit.point.x, hit.point.y + 0.1f, hit.point.z);
                     Debug.Log("Plane CLicked");
                     Utilities.IterateRepeatedInteractionCounter();
-                    HandleSupervisor.playerInteractionOngoing = true;
-                    /*if(HandleSupervisor.lastTouchedObj.tag == "Play Object")
+                    SupervisorAndUI.playerInteractionOngoing = true;
+                    /*if(SupervisorAndUI.lastTouchedObj.tag == "Play Object")
                     {
                         Debug.Log("Dumaan sa if");
-                        HandleSupervisor.lastTouchedObj = this.transform;
+                        SupervisorAndUI.lastTouchedObj = this.transform;
                     }else{
-                        HandleSupervisor.lastTouchedObj = HandleSupervisor.currentTouchedObj;
-                        HandleSupervisor.currentTouchedObj = this.transform;
+                        SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
+                        SupervisorAndUI.currentTouchedObj = this.transform;
                     }*/
 
-                    HandleSupervisor.lastTouchedObj = HandleSupervisor.currentTouchedObj;
-                    HandleSupervisor.currentTouchedObj = this.transform;
+                    SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
+                    SupervisorAndUI.currentTouchedObj = this.transform;
 
                     planeBeingTouchedInteractionOngoing = true;
                 }

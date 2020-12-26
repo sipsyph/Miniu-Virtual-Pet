@@ -20,9 +20,9 @@ public class PaintCanvas : MonoBehaviour
     {
         Debug.Log("Paint canvas clicked");
         
-        HandleSupervisor.lastTouchedObj = HandleSupervisor.currentTouchedObj;
-        HandleSupervisor.currentTouchedObj = this.transform;
-        HandleSupervisor.playerInteractionOngoing = true;
+        SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
+        SupervisorAndUI.currentTouchedObj = this.transform;
+        SupervisorAndUI.playerInteractionOngoing = true;
 
         Utilities.IterateRepeatedInteractionCounter();
     }

@@ -18,14 +18,14 @@ public class HandleRobotToy : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        if(/*(!HandleAgent.wantToCarryObject && HandleAgent.targetObjectToCarry.name == this.transform.name) || */this.transform.parent.name == "Ball Handler" || this.transform.parent.name == "Throw Parent")
+        if(this.transform.parent.name == "Ball Handler" || this.transform.parent.name == "Throw Parent")
         {
             agent.enabled = false;
-            Debug.Log("Robot Toy is disabled");
+            //Debug.Log("Robot Toy is disabled");
         }
         else
         {
-            Debug.Log("Robot Toy is enabled");
+            //Debug.Log("Robot Toy is enabled");
             agent.enabled = true;
         }
 
@@ -45,18 +45,18 @@ public class HandleRobotToy : MonoBehaviour {
     {
         // Choose the next point in the array as the destination,
         // cycling to the start if necessary.
-        destPoint = Random.Range(0, HandleAgent.staticPoints.Length);
+        destPoint = Random.Range(0, MiniuAgent.staticPoints.Length);
         // Set the agent to go to the currently selected destination.
-        agent.destination = HandleAgent.staticPoints[destPoint].position;
+        agent.destination = MiniuAgent.staticPoints[destPoint].position;
         yield return null;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.name == "Miniu Agent" && HandleAgent.wantToCarryObject
-            && HandleAgent.targetObjectToCarry.name == this.transform.name)
+        if (collision.transform.name == "Miniu Agent" && MiniuAgent.wantToCarryObject
+            && MiniuAgent.targetObjectToCarry.name == this.transform.name)
         {
-            Debug.Log("Colliding with agent");
+            //Debug.Log("Colliding with agent");
             StopCoroutine("GoNextPoint");
             agent.enabled = false;
         }
