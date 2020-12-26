@@ -1,3 +1,3 @@
 # Miniu-Virtual-Pet
 
-lets hf boi
+A 3d pet game/simulator with a bit more usage of machine learning compared to most virtual pet games.
