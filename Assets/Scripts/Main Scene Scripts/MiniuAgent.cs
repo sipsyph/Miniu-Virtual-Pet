@@ -26,24 +26,29 @@ public class MiniuAgent : MonoBehaviour
     public int noticedInteractionCounterMax = 240, actionCounterMax = 480; //Counter max values
     public static int ignorePlayerCounter = 0;
 
-    public static int energyMeter, satiationMeter, entertainedMeter;
-    private int energyMeterMax = 100, satiationMeterMax = 100, entertainedMeterMax = 100;
+    public static int energyMeter, satiationMeter, funMeter;
+    private int energyMeterMax = 1000, satiationMeterMax = 1000, funMeterMax = 1000, condittionMeterMax = 1000;
 
     private bool reachedTargetWithCarriedObj, reachedBedObjectTarget, reachedTargetDestination, 
     reachedFrontPointTarget, reachedTargetObject; //"when reached" bools
     private bool floatUp; //Pseudo animation bool to make carried object float up and down
     private NavMeshAgent agent; //controls the NavMesh of the agent
-    public UnityEngine.UI.Text  energyText, ignoreText, entertainedMeterText;
+    public UnityEngine.UI.Text  energyText, ignoreText, funMeterText, debugText;
 
     public static Transform targetObjectToCarry, objectBeingCarried, objCarrierOfAgent; //Placeholder Transform for what the agent wants to carry currently
+
+    public static Transform obJBeingUsedByAgent;
 
     public static bool agentAttentionGotten, wantToCarryObject, agentIsNowCarryingSomething, 
         agentNoticedPlayerInteraction, agentIgnoringPlayer, agentTouchedByPlayerInteractionOngoing; //Reaction? toggles
 
-    public static bool agentIsSleeping; //Action bools
+    public static bool agentIsSleeping, agentIsTired; //Action bools
+
+    private bool hasChosenSleepPos = false, hasFoundCurrentLookingForObj = false;
 
     private bool lookAtPaintingToggle, continueDrawingToggle;// Paint action toggles
 
+    public static Transform currentWantObj;
     Ray ray;
     RaycastHit hit;
 
@@ -51,6 +56,8 @@ public class MiniuAgent : MonoBehaviour
 
     void Start()
     {
+        agentIsSleeping = false; agentIsTired = false;
+        agentNoticedPlayerInteraction = false;
         agent = GetComponent<NavMeshAgent>();
 
         staticPlayObjects = playObjects;
@@ -67,20 +74,160 @@ public class MiniuAgent : MonoBehaviour
     void Update()
     {
         ConditionMeters();
-        RandomWalkingAround();
-        //entertainedMeterText.text = "Boredom Meter: " + entertainedMeter;
+        ReactionToConditionMeters();
+        
+        //GuniGuniBubble.textToBeDisplayed = "hello";
+        debugText.text = "Miniu Using Obj: " + ItemController.currentHeldObj.name;
     }
 
+/* #region  Condition Meters stuff */
+
+
+    void ConditionMeters()
+    {
+        HandleEnergyConditionMeter();
+
+        //Agent is awake and hasn't been interacting with player for a while
+        if (!agentIsSleeping && !agentNoticedPlayerInteraction)
+        {
+            funMeter++;
+            if(funMeter >= funMeterMax)
+            {
+                funMeter = funMeterMax;
+            }
+        }
+        energyText.text = "Energy: "+energyMeter;
+    }
+
+    void HandleEnergyConditionMeter()
+    {
+        //Agent is awake, so energy should go down overtime
+        if(energyMeter > 0 && !agentIsSleeping)
+        {
+            if(energyMeter == energyMeterMax * .8)
+            {
+                MSEyesAnimation.PlayNormalEyesAnimation();
+            }
+            agentIsTired = false;
+            energyMeter--;
+        }
+        
+        //Energy should go up if agent is sleeping
+        if(agentIsSleeping == true)
+        {
+            energyMeter++;
+        }
+
+        //Agent should wake up if energy has reached max
+        if(energyMeter > energyMeterMax)
+        {
+            MSEyesAnimation.PlayTiredEyesAnimation();
+            energyMeter = energyMeterMax;
+            agentIsSleeping = false;
+        }
+
+        //Agent should now sleep if energy has reached min
+        if(energyMeter <= 0)
+        {
+            agentIsSleeping = true;
+        }
+        //Tired eyes at 30% of energy
+        if(energyMeter == energyMeterMax * .3)
+        {
+            if(!agentIsSleeping)
+            {
+                agentIsTired = true;
+                MSEyesAnimation.PlayTiredEyesAnimation();
+                
+            }
+        }
+        //Start chosen sleep animation at 2% of energy
+        if(energyMeter == energyMeterMax * .02 )
+        {
+            int chosenSleepingAnim = Random.Range(0,100);
+            MSEyesAnimation.PlaySleepingEyesAnimation();
+            if(chosenSleepingAnim >= 0 && chosenSleepingAnim <= 33)
+            {
+                MSBodyAnimation.PlaySleepingAnimation();
+            }
+            else if(chosenSleepingAnim > 33 && chosenSleepingAnim <= 66)
+            {
+                MSBodyAnimation.PlaySleeping2Animation();
+            }
+            else
+            {
+                MSBodyAnimation.PlaySleeping3Animation();
+            }
+        }
+    }
+
+    void ReactionToConditionMeters()
+    {
+        if(agentIsTired)
+        {
+            //LookForThis(objName);
+        }
+
+        if(agentIsSleeping)
+        {
+            GoToSleep();
+        }else{
+            BeAwake();
+            RandomWalkingAround();
+        }
+
+
+    }
+    
+/* #endregion */
+    
     void GoToSleep()
     {
+        //LookForThis("Sleep Obj");
+        StopAgentFromMoving();
+    }
+
+    void BeAwake()
+    {
+        StartAgentMoving();
         
     }
 
-    void LookForThis()
+    void LookForThis(string objName)
     {
-        //TODO: Display object icon in guniguni obj
-        //TODO: Walk around in last known position of obj, and around the area
+        if(!hasFoundCurrentLookingForObj)
+        {
+            //TODO: Display object icon in guniguni obj
+            GuniGuniBubble.textToBeDisplayed1 = "look for: "+objName;
+            
+            //TODO: For a certain amt of time walk around in last known position of obj, 
+            //      and around the area, and perform the most effective request action
+            //      until the object is seen
+            //   
+            //if()
+        }
+   
+
     }
+
+    void MoveTowards()
+    {
+
+    }
+
+    void PerformThisRequestAction(string requestActionName)
+    {
+        //Request Actions: Whine, Puppy eyes, Jump
+        //TODO: Make enum for Request Actions
+    }
+
+    void UseThis(string objName)
+    {
+        GuniGuniBubble.textToBeDisplayed2 = "using: "+objName;
+        //TODO: Use animations for each play obj
+    }
+
+
 
     void RandomWalkingAround()
     {
@@ -88,19 +235,7 @@ public class MiniuAgent : MonoBehaviour
         MSBodyAnimation.PlayWalkingAnimation();
     }
 
-    private void OnMouseDown()
-    {
-        Debug.Log("Agent clicked");
-        guniGuniObj.gameObject.SetActive(true);
-        agentTouchedByPlayerInteractionOngoing = true;
-        SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
-        SupervisorAndUI.currentTouchedObj = this.transform;
-        SupervisorAndUI.playerInteractionOngoing = true;
 
-        Utilities.IterateRepeatedInteractionCounter();
-    }
-
-    
 
     int HowLongAgentShouldReact()
     {
@@ -139,15 +274,16 @@ public class MiniuAgent : MonoBehaviour
 
     void StartAgentMoving()
     {
-        StartCoroutine("GoNextPoint");
+        //StartCoroutine("GoNextPoint");
         agent.isStopped = false;
     }
 
     void GoToBed()
     {
-        agent.isStopped = false;
+        //agent.isStopped = false;
         //agent.destination = bedObjects[0].position;
     }
+/* #region  RNG stuff */
 
     IEnumerator ContinuousRandomNumberGeneration()
     {
@@ -192,6 +328,22 @@ public class MiniuAgent : MonoBehaviour
             chosenFlip = 1;
         }
     }
+
+/* #endregion */
+    
+
+    private void OnMouseDown()
+    {
+        Debug.Log("Agent clicked");
+        guniGuniObj.gameObject.SetActive(true);
+        agentTouchedByPlayerInteractionOngoing = true;
+        SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
+        SupervisorAndUI.currentTouchedObj = this.transform;
+        SupervisorAndUI.playerInteractionOngoing = true;
+
+        Utilities.IterateRepeatedInteractionCounter();
+    }
+
     private void OnTriggerEnter(Collider collision)
     {
 
@@ -225,41 +377,6 @@ public class MiniuAgent : MonoBehaviour
         // { reachedBedObjectTarget = false; }
     }
 
-    void ConditionMeters()
-    {
-        if(energyMeter > 0 && agentIsSleeping == false)
-        {
-            agentIsSleeping = false;
-            energyMeter--;
-        }
-
-        if (!agentIsSleeping && !agentNoticedPlayerInteraction)
-        {
-            entertainedMeter++;
-            if(entertainedMeter >= entertainedMeterMax)
-            {
-                entertainedMeter = entertainedMeterMax;
-            }
-        }
-
-        if(agentIsSleeping == true)
-        {
-            //agentIsSleeping = true;
-            energyMeter++;
-        }
-
-        if(energyMeter > energyMeterMax)
-        {
-            energyMeter = energyMeterMax;
-            agentIsSleeping = false;
-        }
-
-        if(energyMeter <= 0)
-        {
-            //agentIsSleeping = true;
-        }
-
-        energyText.text = ""+energyMeter;
-    }
+    
 
 }

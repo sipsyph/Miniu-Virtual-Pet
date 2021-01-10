@@ -14,6 +14,7 @@ public class PlayObject : MonoBehaviour {
     private int ctr, heldCtr;
 
     public static bool holding;
+    private Color oldColor;
     Ray ray;
     RaycastHit hit;
 
@@ -21,9 +22,9 @@ public class PlayObject : MonoBehaviour {
 
     void Start () 
     {
+        oldColor = transform.gameObject.GetComponent<Renderer>().material.color;
         playObjectInteractionOngoing = false;
         ItemController.currentHeldObj = ItemController.throwAwayObj;
-        SupervisorAndUI.currentHeldObj = ItemController.throwAwayObj;
         ctr = 0; heldCtr = 0;
     }
 	
@@ -31,14 +32,14 @@ public class PlayObject : MonoBehaviour {
     {
         if (ItemController.throwParent.transform.childCount > 0)
         {
-            holding = true;
+            ItemController.holdingItem = true;
             //SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
             SupervisorAndUI.currentTouchedObj = ItemController.throwParent.GetChild(0);
 
         }
         else if (ItemController.throwParent.transform.childCount <= 0)
         {
-            holding = false;
+            ItemController.holdingItem = false;
         }
 
         if(MiniuAgent.objCarrierOfAgent.transform.childCount > 1)
@@ -104,14 +105,14 @@ public class PlayObject : MonoBehaviour {
 
     void OnMouseDown()
     {
-        if (holding)
+        if (ItemController.holdingItem)
         {
             Debug.Log("Clikcked "+transform.name+" while holding "+ItemController.currentHeldObj);
             //DropObj();
             //readyToThrow = false;
         }
 
-        if (!holding)
+        if (!ItemController.holdingItem)
         {
             ItemController.readyToThrow = false;
             PickUpObj();
@@ -124,7 +125,7 @@ public class PlayObject : MonoBehaviour {
         GetComponent<Rigidbody>().isKinematic = false;
         transform.GetComponent<Rigidbody>().detectCollisions = true;
         ItemController.currentHeldObj = ItemController.throwAwayObj;
-        SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
+        //SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
         ItemController.previouslyHeldObj = ItemController.throwAwayObj;
     }
 
@@ -134,7 +135,7 @@ public class PlayObject : MonoBehaviour {
         SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
         SupervisorAndUI.currentTouchedObj = this.transform;
         ItemController.currentHeldObj = ItemController.throwAwayObj;
-        SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
+        //SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
         ItemController.previouslyHeldObj = ItemController.throwAwayObj;
     }
 
@@ -143,10 +144,14 @@ public class PlayObject : MonoBehaviour {
     void PickUpObj()
     {
         //Debug.Log("PickUpObj() " + transform.name);
+        Color newColor = new Color(oldColor.r, oldColor.g, oldColor.b, 0.3f);
+        transform.gameObject.GetComponent<Renderer>().material.SetColor("_Color", newColor);
+        transform.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        //GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
         ItemController.currentHeldObj = this.transform;
         ItemController.previouslyHeldObj = ItemController.currentHeldObj;
         SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
-        SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
+        //SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
         this.transform.position = ItemController.throwParent.position;
         this.transform.SetParent(ItemController.throwParent);
         //Debug.Log(ItemController.throwParent.transform.childCount);
@@ -156,8 +161,10 @@ public class PlayObject : MonoBehaviour {
         SupervisorAndUI.currentTouchedObj = this.transform;
         this.GetComponent<Rigidbody>().isKinematic = true;
         Utilities.IterateRepeatedInteractionCounter();
-        Invoke("MakeObjectReadyToThrow", 1/10);
+        Invoke("MakeObjectReadyToThrow", .2f  * Time.deltaTime);
+        //MakeObjectReadyToThrow();
     }
+    
 
     void MakeObjectReadyToThrow()
     {
@@ -177,6 +184,13 @@ public class PlayObject : MonoBehaviour {
             this.transform.GetComponent<Rigidbody>().detectCollisions = false;
             MiniuAgent.objectBeingCarried = this.transform;
             MiniuAgent.agentIsNowCarryingSomething = true;
+        }
+
+        if(collision.transform.name == "Actable Plane Group" || collision.transform.tag == "Play Object")
+        {
+            transform.gameObject.GetComponent<Renderer>().material.SetColor("_Color", oldColor);
+            transform.gameObject.layer = LayerMask.NameToLayer("Default");
+            //GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionY;
         }
     }
     

@@ -4,15 +4,47 @@ using UnityEngine;
 
 public class MSEyesAnimation : MonoBehaviour
 {
-    // Start is called before the first frame update
+
+    public static Animator eyesAnimator;
+    public static string[] triggerNames;
+
+    public Animator pubEyesAnimator;
+
     void Start()
     {
-        
+        eyesAnimator = pubEyesAnimator;
+        triggerNames = new string[]{"normalEyesTrigger","tiredEyesTrigger","sleepingEyesTrigger","scaryEyesTrigger",
+        "beingPetEyesTrigger","magicEyesTrigger"};
     }
 
-    // Update is called once per frame
-    void Update()
+    public static void PlayNormalEyesAnimation()
     {
-        
+        ResetTriggerExcept("normalEyesTrigger");
+        eyesAnimator.SetTrigger("normalEyesTrigger");
+    }
+
+    public static void PlayTiredEyesAnimation()
+    {
+        ResetTriggerExcept("tiredEyesTrigger");
+        eyesAnimator.SetTrigger("tiredEyesTrigger");
+    }
+
+    public static void PlaySleepingEyesAnimation()
+    {
+        ResetTriggerExcept("sleepingEyesTrigger");
+        eyesAnimator.SetTrigger("sleepingEyesTrigger");
+    }
+
+    public static void ResetTriggerExcept(string triggerName)
+    {
+
+        for(int i=0; i<triggerNames.Length;i++)
+        {
+            if(!triggerName.Equals(triggerNames[i]))
+            {
+                eyesAnimator.ResetTrigger(triggerNames[i]);
+            }
+        }
+
     }
 }

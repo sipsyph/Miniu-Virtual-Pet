@@ -46,6 +46,11 @@ public class Utilities : MonoBehaviour {
         //*****************************//
     }
 
+    public static void UpdateAgentConditionMeters()
+    {
+        
+    }
+
     public static Vector3 GetLastPlaneClickedPosition()
     {
         float x, y, z;

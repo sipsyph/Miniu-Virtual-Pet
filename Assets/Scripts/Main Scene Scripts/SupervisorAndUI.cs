@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
+
 
 public class SupervisorAndUI : MonoBehaviour {
 
@@ -13,7 +15,7 @@ public class SupervisorAndUI : MonoBehaviour {
     public Button doorButton, cameraButton, playButton, profileButton, returnFromProfileButton, inventoryButton, portalButton, debugButton, returnFromInventoryButton, returnFromSelectedItemButton,
     itemBtn1, itemBtn2, itemBtn3, itemBtn4, itemBtn5, itemBtn6, itemBtn7, itemBtn8, itemBtn9, useSelectedItemButton, extraDebugBtn, resetAgeBtn, clearInventoryBtn, resetAllBtn,
     returnFromDebugMenuButton, returnFromPaintCanvasViewButton, returnFromCameraModeButton,
-    moveLeftCameraBtn, moveRightCameraBtn, resetCameraPosBtn;
+    moveLeftCameraBtn, moveRightCameraBtn, moveUpCameraBtn, moveDownCameraBtn, toggleXYCameraButton, resetCameraPosBtn;
 
     public Button[] itemButtonArr;
 
@@ -24,9 +26,10 @@ public class SupervisorAndUI : MonoBehaviour {
     public GameObject door;
     public Animator doorAnimator, cameraDoorAnimator, menuTextAnimator, profileTextAnimator;
     public Text titleText, profileText, playText, ageText, selectedItemText;
+    public TMP_Text miniuDataText;
     public static int supervisorActionRepeatedCounter = 0, doorMovedCounter = 0;
 
-    public static Transform lastTouchedObj, currentTouchedObj, lastTouchedPos, frontPoint, currentHeldObj;
+    public static Transform lastTouchedObj, currentTouchedObj, lastTouchedPos, frontPoint;
     public Transform playerPoint, throwParent, inventoryParent;
     public static int supervisorActionRepeatedCounterMax;
     public static bool doorInteractionOngoing, doorClosed, playerInteractionOngoing, cameraMode;
@@ -73,6 +76,8 @@ public class SupervisorAndUI : MonoBehaviour {
             supervisorActionRepeatedCounter = 0;
         }
 
+        HandleCameraModeButtonsActivity();
+
         HandleMenuIdle();
 
         HandleObjPickedUpPanel();
@@ -82,6 +87,31 @@ public class SupervisorAndUI : MonoBehaviour {
         UpdateAgentStats();
 
         CheckThrowParentStatus();
+    }
+
+    void HandleCameraModeButtonsActivity()
+    {
+        if(!MainCamera.toggleYMovement)
+        {
+            if(MainCamera.hittingLeftBound)
+            {
+                moveLeftCameraBtn.interactable = false;
+            }
+            if(!MainCamera.hittingLeftBound)
+            {
+                moveLeftCameraBtn.interactable = true;
+            }
+
+            if(MainCamera.hittingRightBound)
+            {
+                moveRightCameraBtn.interactable = false;
+            }
+            if(!MainCamera.hittingRightBound)
+            {
+                moveRightCameraBtn.interactable = true;
+            }
+        }
+
     }
 
     void FillItemButtonTexts()
@@ -130,7 +160,7 @@ public class SupervisorAndUI : MonoBehaviour {
     {
         if(throwParent.childCount > 0)
         {
-            currentHeldObj = throwParent.GetChild(0);
+            ItemController.currentHeldObj = throwParent.GetChild(0);
             DropHeldObjectWhereClicked();
         }
     }
@@ -138,9 +168,11 @@ public class SupervisorAndUI : MonoBehaviour {
     void UpdateAgentStats()
     {
         frameCtr = frameCtr + Time.deltaTime;
-        if (frameCtr > 2f)
+        if (frameCtr > 1f)
         {
             Utilities.UpdateAgentStats();
+            miniuDataText.text = "Miniu Memory of Objs: \n"
+            + PlayerPrefs.GetString("rememberedObjects", "").Replace("{","\n {");
             frameCtr = 0f;
         }
     }
@@ -173,21 +205,20 @@ public class SupervisorAndUI : MonoBehaviour {
 
     void DropHeldObjectWhereClicked()
     {
-        if (ItemController.readyToThrow)
+        if (ItemController.readyToThrow && !SupervisorAndUI.doorClosed)
         {
             //Debug.Log("ready to throw now = ");
-            if (Input.GetMouseButtonDown(0) || SupervisorAndUI.doorClosed)
+            if (Input.GetMouseButtonDown(0) )
             {
                 ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 //Debug.Log("Clicked Mouse BUtton");
-                if (Physics.Raycast(ray, out hit) || SupervisorAndUI.doorClosed)
+                if (Physics.Raycast(ray, out hit))
                 {
                     Debug.Log("Plane Hit");
-                    if (hit.transform.name == "Actable Plane Group" 
-                        || hit.transform.tag == "Play Object"
-                        ||  SupervisorAndUI.doorClosed)
+                    if ( (hit.transform.name == "Actable Plane Group" 
+                        || hit.transform.tag == "Play Object" ) && hit.transform != ItemController.currentHeldObj)
                     {
-                        Invoke("DropHeldObject", .2f);
+                        Invoke("DropHeldObject", .2f * Time.deltaTime);
                     }
                 }
             }
@@ -205,6 +236,7 @@ public class SupervisorAndUI : MonoBehaviour {
             ItemController.currentHeldObj.gameObject.SetActive(true);
             ItemController.currentHeldObj.GetComponent<Rigidbody>().isKinematic = false;
             ItemController.currentHeldObj.transform.parent = ItemController.playObjectsParent.transform;    
+            ItemController.currentHeldObj = ItemController.throwAwayObj;
         }
     }
 
@@ -212,6 +244,11 @@ public class SupervisorAndUI : MonoBehaviour {
 
     void SetUpEvents()
     {
+        resetAllBtn.onClick.AddListener(() =>
+        {
+            PlayerPrefs.DeleteAll();
+        });
+
         resetCameraPosBtn.onClick.AddListener(() =>
         {
             mainCamera.transform.position = origCameraPosition;
@@ -228,6 +265,26 @@ public class SupervisorAndUI : MonoBehaviour {
             SetActiveCameraModePanel();
             mainCamera.GetComponent<Animator>().enabled = false;
             cameraMode = true;
+        });
+        moveUpCameraBtn.onClick.AddListener(() =>
+        {
+            if(MainCamera.moveCameraUp)
+            {
+                MainCamera.moveCameraUp = false;
+                MainCamera.moveCameraDown = false;
+            }else{
+                MainCamera.moveCameraUp = true;
+            }
+        });
+        moveDownCameraBtn.onClick.AddListener(() =>
+        {
+            if(MainCamera.moveCameraDown)
+            {
+                MainCamera.moveCameraUp = false;
+                MainCamera.moveCameraDown = false;
+            }else{
+                MainCamera.moveCameraDown = true;
+            }
         });
 
         moveLeftCameraBtn.onClick.AddListener(() =>
@@ -249,6 +306,26 @@ public class SupervisorAndUI : MonoBehaviour {
                 MainCamera.moveCameraRight = false;
             }else{
                 MainCamera.moveCameraRight = true;
+            }
+        });
+
+        toggleXYCameraButton.onClick.AddListener(() =>
+        {
+            MainCamera.moveCameraLeft = false;
+            MainCamera.moveCameraRight = false;
+            MainCamera.moveCameraUp = false;
+            MainCamera.moveCameraDown = false;
+            if(!MainCamera.toggleYMovement)
+            {
+                moveLeftCameraBtn.interactable = false;
+                moveRightCameraBtn.interactable = false;
+                MainCamera.toggleYMovement = true;
+            }
+            else
+            {
+                moveLeftCameraBtn.interactable = true;
+                moveRightCameraBtn.interactable = true;
+                MainCamera.toggleYMovement = false;
             }
         });
 
@@ -428,16 +505,15 @@ public class SupervisorAndUI : MonoBehaviour {
             selectedItemPanel.SetActive(false);
             inventoryPanel.SetActive(false);
             ItemController.currentHeldObj = inventoryParent.Find(selectedItem).transform;
-            //inventoryParent.Find(selectedItem).transform.GetComponent<Rigidbody>().isKinematic = true;
-            //inventoryParent.Find(selectedItem).transform.gameObject.SetActive(true);
-            //inventoryParent.Find(selectedItem).transform.parent = throwParent;
+            Debug.Log("Current Held obj: "+ItemController.currentHeldObj.transform.name);
 
             ItemController.currentHeldObj.gameObject.SetActive(true);
             ItemController.currentHeldObj.GetComponent<Rigidbody>().isKinematic = true;
-            ItemController.currentHeldObj.transform.position = throwParent.position;
-            ItemController.currentHeldObj.transform.parent = throwParent;
+            ItemController.currentHeldObj.transform.position = ItemController.throwParent.position;
+            ItemController.currentHeldObj.transform.SetParent(ItemController.throwParent);
             
-            Invoke("MakeObjectReadyToThrow", 1/10);
+            Invoke("MakeObjectReadyToThrow", .2f  * Time.deltaTime);
+            //MakeObjectReadyToThrow();
         });
 
         returnFromSelectedItemButton.onClick.AddListener(() =>
@@ -502,7 +578,7 @@ public class SupervisorAndUI : MonoBehaviour {
 
     void CheckForClickOnPaintCanvas()
     {
-        if (Input.GetMouseButtonDown(0) && !PlayObject.holding && !cameraMode)
+        if (Input.GetMouseButtonDown(0) && !ItemController.holdingItem && !cameraMode)
         {
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Debug.Log("Clicked Mouse BUtton");
