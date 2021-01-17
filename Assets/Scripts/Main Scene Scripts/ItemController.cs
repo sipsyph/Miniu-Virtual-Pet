@@ -20,6 +20,7 @@ public class ItemController : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     void Start()
     {
+        playObjects = playObjectsNonStatic;
         playObjectsParent = playObjectsParentNonStatic;
         throwParent = throwParentNonStatic;
         currentHeldObj = throwAwayObjNonStatic;
