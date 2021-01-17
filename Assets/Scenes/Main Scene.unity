@@ -6502,7 +6502,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: e91cf4aa8cec148a4b6ba86eefc6a553, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.6039216}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -23117,6 +23117,20 @@ MonoBehaviour:
   paintCanvasObjNonStatic: {fileID: 1643578925}
   paintingAreaObjNonStatic: {fileID: 2017405113}
   previouslyHeldObjNonStatic: {fileID: 0}
+  playObjectsNonStatic:
+  - {fileID: 2001990771}
+  - {fileID: 390711178}
+  - {fileID: 1308341164}
+  - {fileID: 4935266483063353}
+  - {fileID: 1201846497}
+  - {fileID: 785173317}
+  - {fileID: 537348789}
+  - {fileID: 207950068}
+  - {fileID: 528413370}
+  - {fileID: 1184933391}
+  comfortObjectsNonStatic: []
+  entertainmentObjectsNonStatic: []
+  satiationObjectsNonStatic: []
 --- !u!4 &1096544412
 Transform:
   m_ObjectHideFlags: 0
