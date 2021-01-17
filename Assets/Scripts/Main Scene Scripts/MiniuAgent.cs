@@ -52,6 +52,8 @@ public class MiniuAgent : MonoBehaviour
     Ray ray;
     RaycastHit hit;
 
+    private MiniuBrain miniuBrain = new MiniuBrain();
+
     #endregion
 
     void Start()
@@ -130,6 +132,7 @@ public class MiniuAgent : MonoBehaviour
         if(energyMeter <= 0)
         {
             agentIsSleeping = true;
+            agentIsTired = false;
         }
         //Tired eyes at 30% of energy
         if(energyMeter == energyMeterMax * .3)
@@ -165,7 +168,9 @@ public class MiniuAgent : MonoBehaviour
     {
         if(agentIsTired)
         {
-            //LookForThis(objName);
+            GuniGuniBubble.textToBeDisplayed1 = "I am tired";
+            LookForThis(miniuBrain.retrieveWantedObjWithTheseConditionMeters(energyMeter,0,0));
+            GuniGuniBubble.ShowGuniGuni();
         }
 
         if(agentIsSleeping)
@@ -198,7 +203,7 @@ public class MiniuAgent : MonoBehaviour
         if(!hasFoundCurrentLookingForObj)
         {
             //TODO: Display object icon in guniguni obj
-            GuniGuniBubble.textToBeDisplayed1 = "look for: "+objName;
+            GuniGuniBubble.textToBeDisplayed2 = "Looking for "+objName;
             
             //TODO: For a certain amt of time walk around in last known position of obj, 
             //      and around the area, and perform the most effective request action
