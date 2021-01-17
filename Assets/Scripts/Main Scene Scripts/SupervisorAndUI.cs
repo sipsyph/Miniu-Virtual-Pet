@@ -218,6 +218,7 @@ public class SupervisorAndUI : MonoBehaviour {
                     if ( (hit.transform.name == "Actable Plane Group" 
                         || hit.transform.tag == "Play Object" ) && hit.transform != ItemController.currentHeldObj)
                     {
+                        ItemController.currentHeldObj.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
                         Invoke("DropHeldObject", .2f * Time.deltaTime);
                     }
                 }

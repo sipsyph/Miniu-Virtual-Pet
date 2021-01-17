@@ -44,7 +44,7 @@ public class MiniuAgent : MonoBehaviour
 
     public static bool agentIsSleeping, agentIsTired; //Action bools
 
-    private bool hasChosenSleepPos = false, hasFoundCurrentLookingForObj = false;
+    private bool hasChosenSleepPos = false, hasFoundCurrentLookingForObj = false, lookingForSomething = false;
 
     private bool lookAtPaintingToggle, continueDrawingToggle;// Paint action toggles
 
@@ -54,11 +54,14 @@ public class MiniuAgent : MonoBehaviour
 
     private MiniuBrain miniuBrain = new MiniuBrain();
 
+    private string targetObjectToGoToName;
+
     #endregion
 
     void Start()
     {
         agentIsSleeping = false; agentIsTired = false;
+        reachedTargetObject = false;
         agentNoticedPlayerInteraction = false;
         agent = GetComponent<NavMeshAgent>();
 
@@ -79,7 +82,7 @@ public class MiniuAgent : MonoBehaviour
         ReactionToConditionMeters();
         
         //GuniGuniBubble.textToBeDisplayed = "hello";
-        debugText.text = "Miniu Using Obj: " + ItemController.currentHeldObj.name;
+        //debugText.text = "Miniu Using Obj: " + ItemController.currentHeldObj.name;
     }
 
 /* #region  Condition Meters stuff */
@@ -110,7 +113,7 @@ public class MiniuAgent : MonoBehaviour
             {
                 MSEyesAnimation.PlayNormalEyesAnimation();
             }
-            agentIsTired = false;
+            //agentIsTired = false;
             energyMeter--;
         }
         
@@ -126,6 +129,7 @@ public class MiniuAgent : MonoBehaviour
             MSEyesAnimation.PlayTiredEyesAnimation();
             energyMeter = energyMeterMax;
             agentIsSleeping = false;
+            agentIsTired = false;
         }
 
         //Agent should now sleep if energy has reached min
@@ -168,9 +172,13 @@ public class MiniuAgent : MonoBehaviour
     {
         if(agentIsTired)
         {
+            debugText.text = "Move towards sleep obj";
             GuniGuniBubble.textToBeDisplayed1 = "I am tired";
             LookForThis(miniuBrain.retrieveWantedObjWithTheseConditionMeters(energyMeter,0,0));
             GuniGuniBubble.ShowGuniGuni();
+        }else{
+            debugText.text = "Random Walking around ";
+            RandomWalkingAround();
         }
 
         if(agentIsSleeping)
@@ -178,7 +186,6 @@ public class MiniuAgent : MonoBehaviour
             GoToSleep();
         }else{
             BeAwake();
-            RandomWalkingAround();
         }
 
 
@@ -188,22 +195,23 @@ public class MiniuAgent : MonoBehaviour
     
     void GoToSleep()
     {
-        //LookForThis("Sleep Obj");
         StopAgentFromMoving();
     }
 
     void BeAwake()
     {
         StartAgentMoving();
-        
     }
 
     void LookForThis(string objName)
     {
-        if(!hasFoundCurrentLookingForObj)
+        lookingForSomething = true;
+        if(!reachedTargetObject && lookingForSomething)
         {
             //TODO: Display object icon in guniguni obj
+            //StartAgentMoving(); 
             GuniGuniBubble.textToBeDisplayed2 = "Looking for "+objName;
+            MoveTowards(objName);
             
             //TODO: For a certain amt of time walk around in last known position of obj, 
             //      and around the area, and perform the most effective request action
@@ -211,13 +219,25 @@ public class MiniuAgent : MonoBehaviour
             //   
             //if()
         }
-   
-
+        else{
+            StopAgentFromMoving();
+            GuniGuniBubble.textToBeDisplayed2 = "Found "+objName;
+            lookingForSomething = false;
+            reachedTargetObject = true;
+        }
     }
 
-    void MoveTowards()
+    void MoveTowards(string objName)
     {
-
+        StopCoroutine("GoNextPoint");
+        if(!AttentionField.ThisObjIsInVision(objName))
+        {
+            agent.destination = miniuBrain.RetrieveLastKnownPositionOf(objName);
+            
+        }else{
+            agent.destination = ItemController.objectWithName(objName).position;
+        }
+        targetObjectToGoToName = objName;
     }
 
     void PerformThisRequestAction(string requestActionName)
@@ -236,8 +256,12 @@ public class MiniuAgent : MonoBehaviour
 
     void RandomWalkingAround()
     {
-        if (!agent.pathPending && agent.remainingDistance < 0.5f) { StartCoroutine("GoNextPoint"); }
-        MSBodyAnimation.PlayWalkingAnimation();
+        if(!agent.isStopped)
+        {
+            
+            if (!agent.pathPending && agent.remainingDistance < 0.5f) { StartCoroutine("GoNextPoint"); }
+            MSBodyAnimation.PlayWalkingAnimation();
+        }
     }
 
 
@@ -364,24 +388,21 @@ public class MiniuAgent : MonoBehaviour
         { reachedTargetWithCarriedObj = false; }
 
 
-        if(collision.transform.name == targetDestination.name)
-        { reachedTargetDestination = true; }
-        else if(collision.transform.name != targetDestination.name)
-        { reachedTargetDestination = false; }
-
-
-        // if(collision.transform.name == targetObjectToGoTo.name)
-        // { reachedTargetObject = true; }
-        // else if(collision.transform.name != targetObjectToGoTo.name)
-        // { reachedTargetObject = false; }
-
-
-        // if (collision.transform.name == bedObjects[0].name)
-        // { reachedBedObjectTarget = true; }
-        // else 
-        // { reachedBedObjectTarget = false; }
+        if(collision.transform.name == targetObjectToGoToName)
+        { 
+            reachedTargetObject = true; 
+            //debugText.text = "FOUND reachedTargetObject "+targetObjectToGoToName; 
+        }
     }
 
+    private void OnTriggerExit(Collider collision)
+    {
+        if(collision.transform.name == targetObjectToGoToName)
+        { 
+            //debugText.text = "NOT FOUND reachedTargetObject "+targetObjectToGoToName; 
+            reachedTargetObject = false; 
+        }
+    }
     
 
 }

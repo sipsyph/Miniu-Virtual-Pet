@@ -11,6 +11,7 @@ public class PlayObject : MonoBehaviour {
 
     private bool  shouldDropAll = false, shouldDropThis = false;
     public int satiationVal, tasteVal, comfortVal, warmVal, coldVal, entertainmentVal;
+    public bool isStationary;
     private int ctr, heldCtr;
 
     public static bool holding;
@@ -151,7 +152,6 @@ public class PlayObject : MonoBehaviour {
         ItemController.currentHeldObj = this.transform;
         ItemController.previouslyHeldObj = ItemController.currentHeldObj;
         SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
-        //SupervisorAndUI.currentHeldObj = ItemController.currentHeldObj;
         this.transform.position = ItemController.throwParent.position;
         this.transform.SetParent(ItemController.throwParent);
         //Debug.Log(ItemController.throwParent.transform.childCount);
@@ -180,6 +180,7 @@ public class PlayObject : MonoBehaviour {
             MSBodyAnimation.PlayCarryingAnimation();
             this.transform.position = MiniuAgent.objCarrierOfAgent.transform.position;
             this.transform.SetParent(MiniuAgent.objCarrierOfAgent.transform);
+            transform.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
             this.transform.GetComponent<Rigidbody>().isKinematic = true;
             this.transform.GetComponent<Rigidbody>().detectCollisions = false;
             MiniuAgent.objectBeingCarried = this.transform;
@@ -190,7 +191,24 @@ public class PlayObject : MonoBehaviour {
         {
             transform.gameObject.GetComponent<Renderer>().material.SetColor("_Color", oldColor);
             transform.gameObject.layer = LayerMask.NameToLayer("Default");
-            //GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionY;
+            if(isStationary)
+            {
+                Debug.Log("ASDCDKGVUSLABHVDUGVASDSADVUASJD");
+                transform.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider collider)
+    {
+        //&& ItemController.currentHeldObj != this.transform
+        if( (collider.transform.name == "Actable Plane Group" || collider.transform.tag == "Play Object") )
+        {
+            if(isStationary)
+            {
+                Debug.Log("A123SDCDKGVUSLABHVDUGVASDSADVUASJD");
+                transform.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
+            }
         }
     }
     

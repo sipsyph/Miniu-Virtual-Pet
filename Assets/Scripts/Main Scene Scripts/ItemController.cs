@@ -30,6 +30,18 @@ public class ItemController : MonoBehaviour
         previouslyHeldObj = throwAwayObjNonStatic;
     }
 
+    public static Transform objectWithName(string objName)
+    {
+        foreach(Transform obj in playObjects)
+        {
+            if(objName == obj.name)
+            {
+                return obj;
+            }
+        }
+        return null;
+    }
+
     public void AddThisToRememberedObjects(Transform playObj)
     {
         foreach (Transform obj in rememberedObjects)

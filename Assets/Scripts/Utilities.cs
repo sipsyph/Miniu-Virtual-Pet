@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Globalization;
 
 public class Utilities : MonoBehaviour {
     public static string inventoryStringPlaceholder="";
@@ -15,6 +16,18 @@ public class Utilities : MonoBehaviour {
         PlayerPrefs.SetFloat("x", xPos);
         PlayerPrefs.SetFloat("y", yPos);
         PlayerPrefs.SetFloat("z", zPos);
+    }
+
+    public static float FloatValueOf(string val)
+    {
+        return float.Parse(val, CultureInfo.InvariantCulture.NumberFormat);
+
+    }
+
+    public static float FloatValueOf(int val)
+    {
+        //TODO: int to float conversion
+        return 0.0f;
     }
 
     public static void UpdateAgentStats()

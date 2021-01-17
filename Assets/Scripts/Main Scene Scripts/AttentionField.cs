@@ -2,12 +2,14 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class AttentionField : MonoBehaviour {
 
     #region Variable Declarations
     private float noticedFramesCtr, noticedFramesCtrMax;
+    public static List<string> objectsInVision = new List<string>();
 
     MiniuBrain miniuBrain;
 
@@ -19,14 +21,46 @@ public class AttentionField : MonoBehaviour {
         noticedFramesCtr = 0.0f;
     }
 
+    public static bool ThisObjIsInVision(string objName)
+    {
+        foreach(string obj in objectsInVision)
+        {
+            if(obj.Equals(objName))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void OnTriggerEnter(Collider collision)
     {
         if(!MiniuAgent.agentIsSleeping)
         {
             if(collision.transform.tag == "Play Object")
             {
-                //Debug.Log("Object in perception: "+collision.transform.name);
+                objectsInVision.Add(collision.transform.name);
+                Debug.Log("Adding to vision list: "+collision.transform.name);
                 miniuBrain.AddToMiniuMemoryThisPlayObjWithName(collision.transform);
+            }
+        }
+    }
+
+    void OnTriggerExit(Collider collision)
+    {
+        
+        if(collision.transform.tag == "Play Object")
+        {
+            string objToRemove = collision.transform.name;
+
+            foreach(string playObj in objectsInVision)
+            {
+                if(playObj.Equals(objToRemove))
+                {
+                    objectsInVision.Remove(objToRemove);
+                    Debug.Log("Removing from vision list: "+objToRemove);
+                    break;
+                }
             }
         }
     }
@@ -40,8 +74,6 @@ public class AttentionField : MonoBehaviour {
                 noticedFramesCtr = noticedFramesCtr + Time.deltaTime;
                 if(noticedFramesCtr >= noticedFramesCtrMax)
                 {
-                    
-
 
                     Debug.Log("INCREMENTING FOND VALUE FOR OBJ "+collision.transform.name);
                     miniuBrain.UpdateDefinitionOfPlayObjWithName(collision.transform.name, 0.01f, collision.transform.position);

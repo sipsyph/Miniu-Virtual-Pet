@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Globalization;
+
 
 public class MiniuBrain : MonoBehaviour
 {
@@ -26,9 +26,22 @@ public class MiniuBrain : MonoBehaviour
 
     }
 
-    private string RetrieveLastKnownPositionOf(string playObjName)
+    public Vector3 RetrieveLastKnownPositionOf(string playObjName)
     {
-        return "";
+        RetrieveAllRememberedPlayObjsAndDefinition();
+        foreach(var playObj in rememberedPlayObjs)
+        {
+            if(playObj[0].Equals(playObjName))
+            {
+                Debug.Log("Location of "+playObjName+": "+playObj[2]+", "+playObj[3]+", "+playObj[4]);
+                return new Vector3(
+                    Utilities.FloatValueOf(playObj[2])
+                    ,Utilities.FloatValueOf(playObj[3])
+                    ,Utilities.FloatValueOf(playObj[4]));
+            }
+        }
+        Debug.Log("ERROR AT RetrieveLastKnownPositionOf");
+        return new Vector3(0f,0f,0f);
     }
 
     public string retrieveWantedObjWithTheseConditionMeters(int energyMeter, int satiationMeter, int funMeter)
@@ -45,7 +58,8 @@ public class MiniuBrain : MonoBehaviour
                 if(itemController.DetermineWhatCategoryThisPlayObjIs(rememberedObjs[i][0]).Equals("Comfort"))
                 {
                     //Get comfort object with highest fondness value
-                    float floatValOfFond = float.Parse(rememberedObjs[i][1], CultureInfo.InvariantCulture.NumberFormat);
+                    float floatValOfFond = Utilities.FloatValueOf(rememberedObjs[i][1]);
+                    //float.Parse(rememberedObjs[i][1], CultureInfo.InvariantCulture.NumberFormat);
                     if(floatValOfFond >= currentFondVal)
                     {
                         currentPlayObjWithHighestFondVal = rememberedObjs[i][0];
@@ -55,7 +69,7 @@ public class MiniuBrain : MonoBehaviour
             }
         }
 
-        Debug.Log("HIGHEST FOND VAL OBJ: "+currentPlayObjWithHighestFondVal+" at "+currentFondVal);
+        //Debug.Log("HIGHEST FOND VAL OBJ: "+currentPlayObjWithHighestFondVal+" at "+currentFondVal);
         return currentPlayObjWithHighestFondVal;
     }
 
