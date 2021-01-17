@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Globalization;
 
 public class MiniuBrain : MonoBehaviour
 {
+    ItemController itemController = new ItemController();
 
     List<string[]> rememberedPlayObjs = new List<string[]>(); 
 
@@ -31,25 +33,30 @@ public class MiniuBrain : MonoBehaviour
 
     public string retrieveWantedObjWithTheseConditionMeters(int energyMeter, int satiationMeter, int funMeter)
     {
-        if(energyMeter <= 300)
+        string[][] rememberedObjs = RetrieveAllRememberedPlayObjsAndTheirFondVal();
+        string currentPlayObjWithHighestFondVal = "";
+        float currentFondVal = 0.0f;
+
+        for (var i = 0; i < rememberedObjs.Length; i++) 
         {
-            //Get comfort object with highest fondness value
-            return "";
+            Debug.Log("Remembered objs: "+rememberedObjs[i][0]);
+            if(energyMeter <= 300)
+            {
+                if(itemController.DetermineWhatCategoryThisPlayObjIs(rememberedObjs[i][0]).Equals("Comfort"))
+                {
+                    //Get comfort object with highest fondness value
+                    float floatValOfFond = float.Parse(rememberedObjs[i][1], CultureInfo.InvariantCulture.NumberFormat);
+                    if(floatValOfFond >= currentFondVal)
+                    {
+                        currentPlayObjWithHighestFondVal = rememberedObjs[i][0];
+                        currentFondVal = floatValOfFond;
+                    }
+                }
+            }
         }
 
-        if(satiationMeter <= 300)
-        {
-            //Get comfort object with highest fondness value
-            return "";
-        }
-
-        if(funMeter <= 300)
-        {
-            //Get comfort object with highest fondness value
-            return "";
-        }
-
-        return "";
+        Debug.Log("HIGHEST FOND VAL OBJ: "+currentPlayObjWithHighestFondVal+" at "+currentFondVal);
+        return currentPlayObjWithHighestFondVal;
     }
 
     private bool PlayObjRemembered(string playObjName)
@@ -98,6 +105,25 @@ public class MiniuBrain : MonoBehaviour
             //Debug.Log("Play Object: "+str+" Name: "+playObjsDefinitionArr[0]+" Def: "+playObjsDefinitionArr[1]+" Def: "+playObjsDefinitionArr[2]+" Def: "+playObjsDefinitionArr[3]+" Def: "+playObjsDefinitionArr[4]);
         }
         return playObjsArr;
+    }
+
+    private string[][] RetrieveAllRememberedPlayObjsAndTheirFondVal()
+    {
+        string serializedPlayObjs = PlayerPrefs.GetString("rememberedObjects", "");
+        string[] playObjsArr = serializedPlayObjs.Split(new char[] { '{', '}' }, StringSplitOptions.RemoveEmptyEntries);
+        string[][] rememberedPlayObjsNamesAndTheirFondVal = new string[ItemController.playObjects.Length-1][];
+        int i = 0;
+        foreach (var str in playObjsArr)
+        {
+            rememberedPlayObjsNamesAndTheirFondVal[i] = new string[2];
+            string[] playObjsDefinitionArr = str.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+            rememberedPlayObjsNamesAndTheirFondVal[i][0] = playObjsDefinitionArr[0];
+            rememberedPlayObjsNamesAndTheirFondVal[i][1] = playObjsDefinitionArr[1];
+            Debug.Log("At RetrieveAllRememberedPlayObjsAndTheirFondVal: "+rememberedPlayObjsNamesAndTheirFondVal[i][0]);
+            Debug.Log("At RetrieveAllRememberedPlayObjsAndTheirFondVal: "+rememberedPlayObjsNamesAndTheirFondVal[i][1]);
+            i++;
+        }
+        return rememberedPlayObjsNamesAndTheirFondVal;
     }
 
 
