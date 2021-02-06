@@ -21,11 +21,11 @@ public class GuniGuniBubble : MonoBehaviour {
 	void Update () {
         textInBubble1.text = textToBeDisplayed1;
         textInBubble2.text = textToBeDisplayed2;
-		if(guniGuniBubble.active && !shouldDisable)
-        {
-            shouldDisable = true;
-            Invoke("DisableGuniGuniObject", 6);
-        }
+		// if(guniGuniBubble.active && !shouldDisable)
+        // {
+        //     shouldDisable = true;
+        //     Invoke("DisableGuniGuniObject", 6);
+        // }
 	}
     
     public static void ShowGuniGuni()
