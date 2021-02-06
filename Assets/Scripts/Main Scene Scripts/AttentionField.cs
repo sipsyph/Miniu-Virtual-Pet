@@ -23,10 +23,11 @@ public class AttentionField : MonoBehaviour {
 
     public static bool ThisObjIsInVision(string objName)
     {
-        foreach(string obj in objectsInVision)
+        foreach(string obj in AttentionField.objectsInVision)
         {
             if(obj.Equals(objName))
             {
+                Debug.Log("Attention field, This Obj is in vision! "+objName);
                 return true;
             }
         }
@@ -42,6 +43,7 @@ public class AttentionField : MonoBehaviour {
                 objectsInVision.Add(collision.transform.name);
                 Debug.Log("Adding to vision list: "+collision.transform.name);
                 miniuBrain.AddToMiniuMemoryThisPlayObjWithName(collision.transform);
+                miniuBrain.UpdateDefinitionOfPlayObjWithName(collision.transform.name, 0.01f, collision.transform.position);
             }
         }
     }
@@ -75,7 +77,7 @@ public class AttentionField : MonoBehaviour {
                 if(noticedFramesCtr >= noticedFramesCtrMax)
                 {
 
-                    Debug.Log("INCREMENTING FOND VALUE FOR OBJ "+collision.transform.name);
+                    Debug.Log("Updating info for "+collision.transform.name);
                     miniuBrain.UpdateDefinitionOfPlayObjWithName(collision.transform.name, 0.01f, collision.transform.position);
                     noticedFramesCtr = 0;
                 }
