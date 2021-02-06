@@ -1789,8 +1789,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -770, y: -1207.3501}
-  m_SizeDelta: {x: 682.2, y: 149}
+  m_AnchoredPosition: {x: -555.55, y: -1479}
+  m_SizeDelta: {x: 1111.1, y: 214}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &65618749
 MonoBehaviour:
@@ -1821,7 +1821,7 @@ MonoBehaviour:
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
+    m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: Debug Text
 --- !u!222 &65618750
@@ -18427,7 +18427,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 820632028}
-  m_Text: Hello World
+  m_Text: 
   m_OffsetZ: 0
   m_CharacterSize: 1
   m_LineSpacing: 1
@@ -20815,8 +20815,9 @@ MonoBehaviour:
   actionCounterMax: 1000
   energyText: {fileID: 209676126}
   ignoreText: {fileID: 377910195}
-  funMeterText: {fileID: 0}
+  funMeterText: {fileID: 1528923040}
   debugText: {fileID: 65618749}
+  satiationText: {fileID: 783275286}
 --- !u!54 &991741459
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -29149,8 +29150,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 7.3162494, y: 1.134613, z: 7.269009}
-  m_Center: {x: -0.29447627, y: 0.36512852, z: 2.0645897}
+  m_Size: {x: 17.93762, y: 1.134613, z: 16.309895}
+  m_Center: {x: -0.54877895, y: 0.36512855, z: 6.584959}
 --- !u!114 &1397628262
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29854,7 +29855,7 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1436673850}
-  m_Text: Hello World
+  m_Text: 
   m_OffsetZ: 0
   m_CharacterSize: 1
   m_LineSpacing: 1
