@@ -27,13 +27,15 @@ public class MiniuAgent : MonoBehaviour
     public static int ignorePlayerCounter = 0;
 
     public static int energyMeter, satiationMeter, funMeter;
-    private int energyMeterMax = 1000, satiationMeterMax = 1000, funMeterMax = 1000, condittionMeterMax = 1000;
+    private int conditionMeterMax;
 
     private bool reachedTargetWithCarriedObj, reachedBedObjectTarget, reachedTargetDestination, 
     reachedFrontPointTarget, reachedTargetObject; //"when reached" bools
     private bool floatUp; //Pseudo animation bool to make carried object float up and down
     private NavMeshAgent agent; //controls the NavMesh of the agent
-    public UnityEngine.UI.Text  energyText, ignoreText, funMeterText, debugText;
+
+    //TODO: move UI.Texts to SupervisorAndUI class
+    public UnityEngine.UI.Text  energyText, ignoreText, funMeterText, debugText, satiationText;
 
     public static Transform targetObjectToCarry, objectBeingCarried, objCarrierOfAgent; //Placeholder Transform for what the agent wants to carry currently
 
@@ -42,7 +44,7 @@ public class MiniuAgent : MonoBehaviour
     public static bool agentAttentionGotten, wantToCarryObject, agentIsNowCarryingSomething, 
         agentNoticedPlayerInteraction, agentIgnoringPlayer, agentTouchedByPlayerInteractionOngoing; //Reaction? toggles
 
-    public static bool agentIsSleeping, agentIsTired; //Action bools
+    public static bool agentIsSleeping, agentIsTired, agentIsHungry; //Action bools
 
     private bool hasChosenSleepPos = false, hasFoundCurrentLookingForObj = false, lookingForSomething = false;
 
@@ -60,7 +62,9 @@ public class MiniuAgent : MonoBehaviour
 
     void Start()
     {
-        agentIsSleeping = false; agentIsTired = false;
+        conditionMeterMax = 2000;
+        funMeter = satiationMeter = energyMeter = conditionMeterMax;
+        agentIsSleeping = false; agentIsTired = false; agentIsHungry = false;
         reachedTargetObject = false;
         agentNoticedPlayerInteraction = false;
         agent = GetComponent<NavMeshAgent>();
@@ -68,7 +72,6 @@ public class MiniuAgent : MonoBehaviour
         staticPlayObjects = playObjects;
         staticPoints = points;
         objCarrierOfAgent = playObjectHandler;
-        energyMeter = energyMeterMax;
 
         targetPointToCarryObjectTo = points[30];
         objectToCarry = playObjects[Random.Range(0, playObjects.Length)];
@@ -90,26 +93,55 @@ public class MiniuAgent : MonoBehaviour
 
     void ConditionMeters()
     {
+        HandleSatiationConditionMeter();
         HandleEnergyConditionMeter();
+        HandleFunConditionMeter();
 
-        //Agent is awake and hasn't been interacting with player for a while
-        if (!agentIsSleeping && !agentNoticedPlayerInteraction)
-        {
-            funMeter++;
-            if(funMeter >= funMeterMax)
-            {
-                funMeter = funMeterMax;
-            }
-        }
-        energyText.text = "Energy: "+energyMeter;
+        
     }
 
+    void HandleSatiationConditionMeter()
+    {
+        if (!agentIsSleeping)
+        {
+            satiationMeter--;
+            satiationMeter = Utilities.ClampToRange(satiationMeter, 0, conditionMeterMax);
+            satiationText.text = "Satiation: "+satiationMeter;
+            
+        }
+
+        if(satiationMeter <= conditionMeterMax * .75)
+        {
+            agentIsHungry = true;
+
+        }else{
+            agentIsHungry = false;
+        }
+    }
+
+/* #region  Fun Condition Meter   */
+    void HandleFunConditionMeter()
+    {
+        //Agent is awake and hasn't been interacting with player for a while
+        //Removed agent capability of noticing player interaction for now
+        if (!agentIsSleeping && !agentNoticedPlayerInteraction)
+        {
+            funMeter--;
+            funMeter = Utilities.ClampToRange(funMeter, 0, conditionMeterMax);
+            funMeterText.text = "Fun: "+funMeter;
+        }
+    }
+/* #endregion */
+
+
+/* #region  Energy Condition Meter */
     void HandleEnergyConditionMeter()
     {
+        energyText.text = "Energy: "+energyMeter;
         //Agent is awake, so energy should go down overtime
         if(energyMeter > 0 && !agentIsSleeping)
         {
-            if(energyMeter == energyMeterMax * .8)
+            if(energyMeter == conditionMeterMax * .8)
             {
                 MSEyesAnimation.PlayNormalEyesAnimation();
             }
@@ -124,10 +156,11 @@ public class MiniuAgent : MonoBehaviour
         }
 
         //Agent should wake up if energy has reached max
-        if(energyMeter > energyMeterMax)
+        if(energyMeter > conditionMeterMax)
         {
+            GuniGuniBubble.textToBeDisplayed1 = "I am awake";
             MSEyesAnimation.PlayTiredEyesAnimation();
-            energyMeter = energyMeterMax;
+            energyMeter = conditionMeterMax;
             agentIsSleeping = false;
             agentIsTired = false;
         }
@@ -139,7 +172,7 @@ public class MiniuAgent : MonoBehaviour
             agentIsTired = false;
         }
         //Tired eyes at 30% of energy
-        if(energyMeter == energyMeterMax * .3)
+        if(energyMeter == conditionMeterMax * .3)
         {
             if(!agentIsSleeping)
             {
@@ -149,7 +182,7 @@ public class MiniuAgent : MonoBehaviour
             }
         }
         //Start chosen sleep animation at 2% of energy
-        if(energyMeter == energyMeterMax * .02 )
+        if(energyMeter == 1 )
         {
             int chosenSleepingAnim = Random.Range(0,100);
             MSEyesAnimation.PlaySleepingEyesAnimation();
@@ -167,17 +200,18 @@ public class MiniuAgent : MonoBehaviour
             }
         }
     }
+/* #endregion */
 
     void ReactionToConditionMeters()
     {
         if(agentIsTired)
         {
-            debugText.text = "Move towards sleep obj";
+            //debugText.text = "Move towards sleep obj";
             GuniGuniBubble.textToBeDisplayed1 = "I am tired";
-            LookForThis(miniuBrain.retrieveWantedObjWithTheseConditionMeters(energyMeter,0,0));
+            LookForThis(miniuBrain.retrieveWantedObjWithTheseConditionMeters(energyMeter,0,0,conditionMeterMax));
             GuniGuniBubble.ShowGuniGuni();
         }else{
-            debugText.text = "Random Walking around ";
+            //debugText.text = "Random Walking around ";
             RandomWalkingAround();
         }
 
@@ -188,25 +222,34 @@ public class MiniuAgent : MonoBehaviour
             BeAwake();
         }
 
+        if(agentIsHungry && !agentIsTired)
+        {
+            GuniGuniBubble.textToBeDisplayed1 = "I am hungry ";
+        }else{
 
+        }
     }
     
 /* #endregion */
     
     void GoToSleep()
     {
+        GuniGuniBubble.textToBeDisplayed1 = "Sleeping zzz";
         StopAgentFromMoving();
     }
 
     void BeAwake()
     {
+        //GuniGuniBubble.textToBeDisplayed2 = "I am awake";
         StartAgentMoving();
     }
 
     void LookForThis(string objName)
     {
-        lookingForSomething = true;
-        if(!reachedTargetObject && lookingForSomething)
+        //currentWantObj = ItemController.objectWithName(objName);
+        //Debug.Log("Looking for currentWantObj: "+currentWantObj.name);
+        targetObjectToGoToName = objName;
+        if(!reachedTargetObject)
         {
             //TODO: Display object icon in guniguni obj
             //StartAgentMoving(); 
@@ -222,22 +265,30 @@ public class MiniuAgent : MonoBehaviour
         else{
             StopAgentFromMoving();
             GuniGuniBubble.textToBeDisplayed2 = "Found "+objName;
-            lookingForSomething = false;
-            reachedTargetObject = true;
+            //lookingForSomething = false;
+            //reachedTargetObject = true;
         }
     }
 
     void MoveTowards(string objName)
     {
+
+        // foreach(string obj in AttentionField.objectsInVision)
+        // {
+        //     Debug.Log("Object in vision: "+obj);
+        // }
+        
         StopCoroutine("GoNextPoint");
-        if(!AttentionField.ThisObjIsInVision(objName))
+        if(AttentionField.ThisObjIsInVision(objName))
         {
-            agent.destination = miniuBrain.RetrieveLastKnownPositionOf(objName);
-            
-        }else{
+            debugText.text = "Going to actual position of "+objName;
             agent.destination = ItemController.objectWithName(objName).position;
         }
-        targetObjectToGoToName = objName;
+        else
+        {
+            debugText.text = "Going to last known position of "+objName;
+            agent.destination = miniuBrain.RetrieveLastKnownPositionOf(objName);
+        }
     }
 
     void PerformThisRequestAction(string requestActionName)
@@ -258,7 +309,6 @@ public class MiniuAgent : MonoBehaviour
     {
         if(!agent.isStopped)
         {
-            
             if (!agent.pathPending && agent.remainingDistance < 0.5f) { StartCoroutine("GoNextPoint"); }
             MSBodyAnimation.PlayWalkingAnimation();
         }
@@ -403,6 +453,4 @@ public class MiniuAgent : MonoBehaviour
             reachedTargetObject = false; 
         }
     }
-    
-
 }
