@@ -11,6 +11,34 @@ public class Utilities : MonoBehaviour {
 		
 	}
 
+    public static int ClampToRange(int counter, int minRange, int maxRange)
+    {
+        if(counter <= minRange)
+        {
+            counter = minRange;
+        }
+        if(counter >= maxRange)
+        {
+            counter = maxRange;
+        }
+
+        return counter;
+    }
+
+    public static float ClampToRange(float counter, float minRange, float maxRange)
+    {
+        if(counter <= minRange)
+        {
+            counter = minRange;
+        }
+        if(counter >= maxRange)
+        {
+            counter = maxRange;
+        }
+
+        return counter;
+    }
+
     public static void SetLastPlaneClickedPosition(float xPos, float yPos, float zPos)
     {
         PlayerPrefs.SetFloat("x", xPos);
@@ -99,7 +127,7 @@ public class Utilities : MonoBehaviour {
         inventoryStringPlaceholder = PlayerPrefs.GetString("Inventory");
         inventoryStringPlaceholder = inventoryStringPlaceholder.Replace(obj + "|", string.Empty);
         PlayerPrefs.SetString("Inventory", inventoryStringPlaceholder);
-        Debug.Log(PlayerPrefs.GetString("Inventory"));
+        //Debug.Log(PlayerPrefs.GetString("Inventory"));
     }
 
     public static void DropThisObj(Transform transformObj, Transform playObjectsParent)

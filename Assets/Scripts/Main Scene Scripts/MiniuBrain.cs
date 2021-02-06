@@ -31,6 +31,7 @@ public class MiniuBrain : MonoBehaviour
         RetrieveAllRememberedPlayObjsAndDefinition();
         foreach(var playObj in rememberedPlayObjs)
         {
+            Debug.Log("Location of "+playObj[0]+": "+playObj[2]+", "+playObj[3]+", "+playObj[4]);
             if(playObj[0].Equals(playObjName))
             {
                 Debug.Log("Location of "+playObjName+": "+playObj[2]+", "+playObj[3]+", "+playObj[4]);
@@ -44,7 +45,7 @@ public class MiniuBrain : MonoBehaviour
         return new Vector3(0f,0f,0f);
     }
 
-    public string retrieveWantedObjWithTheseConditionMeters(int energyMeter, int satiationMeter, int funMeter)
+    public string retrieveWantedObjWithTheseConditionMeters(int energyMeter, int satiationMeter, int funMeter, int meterMax)
     {
         string[][] rememberedObjs = RetrieveAllRememberedPlayObjsAndTheirFondVal();
         string currentPlayObjWithHighestFondVal = "";
@@ -53,7 +54,7 @@ public class MiniuBrain : MonoBehaviour
         for (var i = 0; i < rememberedObjs.Length; i++) 
         {
             Debug.Log("Remembered objs: "+rememberedObjs[i][0]);
-            if(energyMeter <= 300)
+            if(energyMeter <= meterMax * .3) // if agent is tired
             {
                 if(itemController.DetermineWhatCategoryThisPlayObjIs(rememberedObjs[i][0]).Equals("Comfort"))
                 {

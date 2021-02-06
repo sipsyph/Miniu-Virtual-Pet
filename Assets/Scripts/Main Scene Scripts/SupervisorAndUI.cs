@@ -149,6 +149,7 @@ public class SupervisorAndUI : MonoBehaviour {
         if (!doorIsOpen)
         {
             menuIdleCounter+=Time.deltaTime;
+            Utilities.ClampToRange(menuIdleCounter, 0.0f, menuIdleCounterMax);
             if (menuIdleCounter > menuIdleCounterMax)
             {
                 cameraDoorAnimator.SetTrigger("cameraDoorRotateTrigger");
