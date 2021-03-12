@@ -54,12 +54,30 @@ public class MiniuBrain : MonoBehaviour
         for (var i = 0; i < rememberedObjs.Length; i++) 
         {
             Debug.Log("Remembered objs: "+rememberedObjs[i][0]);
-            if(energyMeter <= meterMax * .3) // if agent is tired
+            if(MiniuAgent.agentIsTired) // if agent is tired
             {
                 if(itemController.DetermineWhatCategoryThisPlayObjIs(rememberedObjs[i][0]).Equals("Comfort"))
                 {
                     //Get comfort object with highest fondness value
                     float floatValOfFond = Utilities.FloatValueOf(rememberedObjs[i][1]);
+                    currentPlayObjWithHighestFondVal = rememberedObjs[i][0];
+                    return currentPlayObjWithHighestFondVal;
+                    //float.Parse(rememberedObjs[i][1], CultureInfo.InvariantCulture.NumberFormat);
+                    if(floatValOfFond >= currentFondVal)
+                    {
+                        currentPlayObjWithHighestFondVal = rememberedObjs[i][0];
+                        currentFondVal = floatValOfFond;
+                    }
+                }
+            }
+            if(MiniuAgent.agentIsHungry) // if agent is hungry
+            {
+                if(itemController.DetermineWhatCategoryThisPlayObjIs(rememberedObjs[i][0]).Equals("Satiation"))
+                {
+                    //Get satiation object with highest fondness value
+                    float floatValOfFond = Utilities.FloatValueOf(rememberedObjs[i][1]);
+                    currentPlayObjWithHighestFondVal = rememberedObjs[i][0];
+                    return currentPlayObjWithHighestFondVal;
                     //float.Parse(rememberedObjs[i][1], CultureInfo.InvariantCulture.NumberFormat);
                     if(floatValOfFond >= currentFondVal)
                     {

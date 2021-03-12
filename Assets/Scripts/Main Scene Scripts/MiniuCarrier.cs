@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HandleMiniuCarrier : MonoBehaviour {
+public class MiniuCarrier : MonoBehaviour {
 
     public static bool agentIsHoldingSomething;
 

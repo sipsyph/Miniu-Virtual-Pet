@@ -11,7 +11,7 @@ public class PlayObject : MonoBehaviour {
 
     private bool  shouldDropAll = false, shouldDropThis = false;
     public int satiationVal, tasteVal, comfortVal, warmVal, coldVal, entertainmentVal;
-    public bool isStationary;
+    public bool isStationary, inPlay;
     private int ctr, heldCtr;
 
     public static bool holding;
@@ -162,7 +162,6 @@ public class PlayObject : MonoBehaviour {
         this.GetComponent<Rigidbody>().isKinematic = true;
         Utilities.IterateRepeatedInteractionCounter();
         Invoke("MakeObjectReadyToThrow", .2f  * Time.deltaTime);
-        //MakeObjectReadyToThrow();
     }
     
 
@@ -189,11 +188,18 @@ public class PlayObject : MonoBehaviour {
 
         if(collision.transform.name == "Actable Plane Group" || collision.transform.tag == "Play Object")
         {
-            transform.gameObject.GetComponent<Renderer>().material.SetColor("_Color", oldColor);
+            inPlay = true;
+            transform.gameObject.GetComponent<Rigidbody>().detectCollisions = true;
+            try
+            {
+                transform.gameObject.GetComponent<Renderer>().material.SetColor("_Color", oldColor);
+            }catch{
+
+            }
+            
             transform.gameObject.layer = LayerMask.NameToLayer("Default");
             if(isStationary)
             {
-                Debug.Log("ASDCDKGVUSLABHVDUGVASDSADVUASJD");
                 transform.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
             }
         }
@@ -204,9 +210,9 @@ public class PlayObject : MonoBehaviour {
         //&& ItemController.currentHeldObj != this.transform
         if( (collider.transform.name == "Actable Plane Group" || collider.transform.tag == "Play Object") )
         {
+            transform.gameObject.GetComponent<Rigidbody>().detectCollisions = true;
             if(isStationary)
             {
-                Debug.Log("A123SDCDKGVUSLABHVDUGVASDSADVUASJD");
                 transform.gameObject.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
             }
         }

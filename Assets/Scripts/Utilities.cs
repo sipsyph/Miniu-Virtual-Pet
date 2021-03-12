@@ -115,10 +115,13 @@ public class Utilities : MonoBehaviour {
         return Convert.ToInt32(frames * Time.deltaTime);
     }
 
-    public static void AddObjectToInventory(string obj)
+    public static void AddObjectToInventory(Transform obj)
     {
-        PlayerPrefs.SetString("Inventory", PlayerPrefs.GetString("Inventory")+obj+ "|");
-        Debug.Log(PlayerPrefs.GetString("Inventory"));
+        PlayerPrefs.SetString("Inventory", PlayerPrefs.GetString("Inventory")+obj.name+ "|");
+        ItemController.currentHeldObj.parent = SupervisorAndUI.inventoryParent;
+        ItemController.currentHeldObj.gameObject.SetActive(false);
+        obj.GetComponent<PlayObject>().inPlay = false;
+        //Debug.Log(PlayerPrefs.GetString("Inventory"));
     }
 
     public static void RemoveObjectFromInventory(string obj)

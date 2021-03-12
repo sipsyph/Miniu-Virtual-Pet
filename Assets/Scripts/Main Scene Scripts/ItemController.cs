@@ -42,6 +42,13 @@ public class ItemController : MonoBehaviour
         return null;
     }
 
+    public static void SoftDeleteObject(Transform obj)
+    {
+        obj.parent = playObjectsParent;
+        obj.position = playObjectsParent.position;
+        obj.gameObject.SetActive(false);
+    }
+
     public void AddThisToRememberedObjects(Transform playObj)
     {
         foreach (Transform obj in rememberedObjects)
@@ -84,9 +91,19 @@ public class ItemController : MonoBehaviour
         return "";
     }
 
-    void PickUpObj(Transform targetObj)
+    public void PutObjToInventory(Transform obj)
     {
-        
+        ItemController.currentHeldObj = obj;
+        ItemController.previouslyHeldObj = ItemController.currentHeldObj;
+        SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
+        obj.GetComponent<Rigidbody>().isKinematic = true;
+        obj.GetComponent<Rigidbody>().detectCollisions = true;
+        Utilities.AddObjectToInventory(ItemController.currentHeldObj);
+    }
+
+    public void PickUpObj(Transform targetObj)
+    {
+        targetObj.gameObject.SetActive(true);
         ItemController.currentHeldObj = targetObj;
         ItemController.previouslyHeldObj = ItemController.currentHeldObj;
         SupervisorAndUI.lastTouchedObj = SupervisorAndUI.currentTouchedObj;
@@ -99,12 +116,12 @@ public class ItemController : MonoBehaviour
         SupervisorAndUI.playerInteractionOngoing = true;
 
         SupervisorAndUI.currentTouchedObj = targetObj;
-        this.GetComponent<Rigidbody>().isKinematic = true;
+        targetObj.GetComponent<Rigidbody>().isKinematic = true;
         Utilities.IterateRepeatedInteractionCounter();
         Invoke("MakeObjectReadyToThrow", 1/10);
     }
 
-    void MakeObjectReadyToThrow()
+    public void MakeObjectReadyToThrow()
     {
         readyToThrow = true;
     }

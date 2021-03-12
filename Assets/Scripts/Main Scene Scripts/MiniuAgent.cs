@@ -44,7 +44,7 @@ public class MiniuAgent : MonoBehaviour
     public static bool agentAttentionGotten, wantToCarryObject, agentIsNowCarryingSomething, 
         agentNoticedPlayerInteraction, agentIgnoringPlayer, agentTouchedByPlayerInteractionOngoing; //Reaction? toggles
 
-    public static bool agentIsSleeping, agentIsTired, agentIsHungry; //Action bools
+    public static bool agentIsSleeping, agentIsTired, agentIsHungry, agentIsEating; //Action bools
 
     private bool hasChosenSleepPos = false, hasFoundCurrentLookingForObj = false, lookingForSomething = false;
 
@@ -55,6 +55,7 @@ public class MiniuAgent : MonoBehaviour
     RaycastHit hit;
 
     private MiniuBrain miniuBrain = new MiniuBrain();
+    private ItemController itemController = new ItemController();
 
     private string targetObjectToGoToName;
 
@@ -96,16 +97,15 @@ public class MiniuAgent : MonoBehaviour
         HandleSatiationConditionMeter();
         HandleEnergyConditionMeter();
         HandleFunConditionMeter();
-
-        
     }
 
+    /* #region  Satiation Condition Meter */
     void HandleSatiationConditionMeter()
     {
+        satiationMeter = Utilities.ClampToRange(satiationMeter, 0, conditionMeterMax);
         if (!agentIsSleeping)
         {
             satiationMeter--;
-            satiationMeter = Utilities.ClampToRange(satiationMeter, 0, conditionMeterMax);
             satiationText.text = "Satiation: "+satiationMeter;
             
         }
@@ -118,25 +118,27 @@ public class MiniuAgent : MonoBehaviour
             agentIsHungry = false;
         }
     }
+    /* #endregion */
 
-/* #region  Fun Condition Meter   */
+    /* #region  Fun Condition Meter   */
     void HandleFunConditionMeter()
     {
+        funMeter = Utilities.ClampToRange(funMeter, 0, conditionMeterMax);
         //Agent is awake and hasn't been interacting with player for a while
         //Removed agent capability of noticing player interaction for now
         if (!agentIsSleeping && !agentNoticedPlayerInteraction)
         {
             funMeter--;
-            funMeter = Utilities.ClampToRange(funMeter, 0, conditionMeterMax);
+            
             funMeterText.text = "Fun: "+funMeter;
         }
     }
-/* #endregion */
+    /* #endregion */
 
-
-/* #region  Energy Condition Meter */
+    /* #region  Energy Condition Meter */
     void HandleEnergyConditionMeter()
     {
+        energyMeter = Utilities.ClampToRange(energyMeter, 0, conditionMeterMax);
         energyText.text = "Energy: "+energyMeter;
         //Agent is awake, so energy should go down overtime
         if(energyMeter > 0 && !agentIsSleeping)
@@ -159,6 +161,7 @@ public class MiniuAgent : MonoBehaviour
         if(energyMeter > conditionMeterMax)
         {
             GuniGuniBubble.textToBeDisplayed1 = "I am awake";
+            MSBodyAnimation.PlayWalkingAnimation();
             MSEyesAnimation.PlayTiredEyesAnimation();
             energyMeter = conditionMeterMax;
             agentIsSleeping = false;
@@ -200,8 +203,9 @@ public class MiniuAgent : MonoBehaviour
             }
         }
     }
-/* #endregion */
+    /* #endregion */
 
+    /* #region  Reaction to Condition Meter Values */
     void ReactionToConditionMeters()
     {
         if(agentIsTired)
@@ -209,7 +213,7 @@ public class MiniuAgent : MonoBehaviour
             //debugText.text = "Move towards sleep obj";
             GuniGuniBubble.textToBeDisplayed1 = "I am tired";
             LookForThis(miniuBrain.retrieveWantedObjWithTheseConditionMeters(energyMeter,0,0,conditionMeterMax));
-            GuniGuniBubble.ShowGuniGuni();
+            //GuniGuniBubble.ShowGuniGuni();
         }else{
             //debugText.text = "Random Walking around ";
             RandomWalkingAround();
@@ -222,16 +226,120 @@ public class MiniuAgent : MonoBehaviour
             BeAwake();
         }
 
-        if(agentIsHungry && !agentIsTired)
+        if(agentIsHungry && !agentIsTired && !agentIsSleeping)
         {
             GuniGuniBubble.textToBeDisplayed1 = "I am hungry ";
+            LookForThis(miniuBrain.retrieveWantedObjWithTheseConditionMeters(energyMeter,satiationMeter,funMeter,conditionMeterMax));
+
         }else{
 
         }
     }
+    /* #endregion */
     
 /* #endregion */
     
+    void EatFood(Transform foodObj)
+    {
+        if(agentIsHungry && !agentIsTired && !agentIsSleeping)
+        {
+            agentIsEating = true;
+            CarryThisObject(foodObj);
+            satiationMeter += 500;
+        }
+    }
+
+    void IfEatingThenFinish()
+    {
+        if(agentIsEating)
+        {
+            if(ConsumeCarriedObjectAfterThisTime(120))
+            {
+                agentIsEating = false;
+            }
+        }
+    }
+
+    void CarryThisObject(Transform obj)
+    {
+        targetObjectToCarry = obj;
+        wantToCarryObject = true;
+    }
+
+    void GoToThisObjectAndCarryIt(Transform obj)
+    {
+        StopCoroutine("GoNextPoint");
+        targetObjectToCarry = obj;
+        wantToCarryObject = true;
+        if(agentIsNowCarryingSomething == false)
+        {
+            agent.destination = obj.position;
+        }
+        else{
+            
+            objectBeingCarried = obj;
+        }
+    }
+
+    void CarryObjectTo(Transform destinationPoint)
+    {
+        
+    }
+
+    bool DropCarriedObjectAfterThisTime(int forHowManyFrames)
+    {
+        if (agentIsNowCarryingSomething == true)
+        {
+            howLongCarryCounter++;
+
+            if (howLongCarryCounter > forHowManyFrames)
+            {
+                MSBodyAnimation.PlayWalkingAnimation();
+                wantToCarryObject = false;
+                objectBeingCarried.transform.SetParent(playObjectsParent.transform);
+                objectBeingCarried.GetComponent<Rigidbody>().isKinematic = false;
+                objectBeingCarried.GetComponent<Rigidbody>().detectCollisions = true;
+                Debug.Log("AGENT IS DROPPING OBJECT "+ objectBeingCarried);
+
+                objectBeingCarried = null;
+                targetObjectToCarry = null;
+                agentIsNowCarryingSomething = false;
+                howLongCarryCounter = 0;
+                StartCoroutine("GoNextPoint");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool ConsumeCarriedObjectAfterThisTime(int forHowManyFrames)
+    {
+        if (agentIsNowCarryingSomething == true)
+        {
+            howLongCarryCounter++;
+
+            if (howLongCarryCounter > forHowManyFrames)
+            {
+                MSBodyAnimation.PlayWalkingAnimation();
+                wantToCarryObject = false;
+                //ItemController.SoftDeleteObject(objectBeingCarried);
+                itemController.PutObjToInventory(objectBeingCarried);
+                //TODO: "delete" food object
+                Debug.Log("AGENT IS CONSUMING OBJECT "+ objectBeingCarried);
+
+                objectBeingCarried = null;
+                targetObjectToCarry = null;
+                agentIsNowCarryingSomething = false;
+                howLongCarryCounter = 0;
+                StartCoroutine("GoNextPoint");
+
+                
+                return true;
+            }
+        }
+        return false;
+    }
+
     void GoToSleep()
     {
         GuniGuniBubble.textToBeDisplayed1 = "Sleeping zzz";
@@ -241,6 +349,7 @@ public class MiniuAgent : MonoBehaviour
     void BeAwake()
     {
         //GuniGuniBubble.textToBeDisplayed2 = "I am awake";
+        IfEatingThenFinish();
         StartAgentMoving();
     }
 
@@ -279,7 +388,7 @@ public class MiniuAgent : MonoBehaviour
         // }
         
         StopCoroutine("GoNextPoint");
-        if(AttentionField.ThisObjIsInVision(objName))
+        if(ItemController.objectWithName(objName).GetComponent<PlayObject>().inPlay)
         {
             debugText.text = "Going to actual position of "+objName;
             agent.destination = ItemController.objectWithName(objName).position;
@@ -335,15 +444,7 @@ public class MiniuAgent : MonoBehaviour
 
     
 
-    void CarryThisObject(Transform obj)
-    {
-        
-    }
 
-    void CarryObjectTo(Transform destinationPoint)
-    {
-        
-    }
 
     void StopAgentFromMoving()
     {
@@ -442,6 +543,11 @@ public class MiniuAgent : MonoBehaviour
         { 
             reachedTargetObject = true; 
             //debugText.text = "FOUND reachedTargetObject "+targetObjectToGoToName; 
+        }
+
+        if(collision.transform.name.Contains("Food"))
+        {
+            EatFood(collision.transform);
         }
     }
 

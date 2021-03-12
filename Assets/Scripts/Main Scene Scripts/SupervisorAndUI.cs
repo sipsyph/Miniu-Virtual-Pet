@@ -30,7 +30,8 @@ public class SupervisorAndUI : MonoBehaviour {
     public static int supervisorActionRepeatedCounter = 0, doorMovedCounter = 0;
 
     public static Transform lastTouchedObj, currentTouchedObj, lastTouchedPos, frontPoint;
-    public Transform playerPoint, throwParent, inventoryParent;
+    public Transform nonStaticPlayerPoint, nonStaticThrowParent, nonStaticInventoryParent;
+    public static Transform playerPoint, throwParent, inventoryParent;
     public static int supervisorActionRepeatedCounterMax;
     public static bool doorInteractionOngoing, doorClosed, playerInteractionOngoing, cameraMode;
     private bool doorIsOpen;
@@ -40,6 +41,9 @@ public class SupervisorAndUI : MonoBehaviour {
     RaycastHit hit;
     // Use this for initialization
     void Start () {
+        playerPoint = nonStaticPlayerPoint;
+        throwParent = nonStaticThrowParent;
+        inventoryParent = nonStaticInventoryParent;
         SetUpEvents(); //Set up Buttons
         origCameraPosition = mainCamera.transform.position;
         doorInteractionOngoing = false;
@@ -419,9 +423,7 @@ public class SupervisorAndUI : MonoBehaviour {
         {
             if(ItemController.throwParent.childCount>0)
             { 
-                Utilities.AddObjectToInventory(ItemController.currentHeldObj.name);
-                ItemController.currentHeldObj.parent = inventoryParent;
-                ItemController.currentHeldObj.gameObject.SetActive(false);
+                Utilities.AddObjectToInventory(ItemController.currentHeldObj);
             }else{
 
                 FillItemButtonTexts();
@@ -502,7 +504,6 @@ public class SupervisorAndUI : MonoBehaviour {
 
         useSelectedItemButton.onClick.AddListener(() =>
         {
-            
             Utilities.RemoveObjectFromInventory(selectedItem);
             selectedItemPanel.SetActive(false);
             inventoryPanel.SetActive(false);
@@ -515,7 +516,6 @@ public class SupervisorAndUI : MonoBehaviour {
             ItemController.currentHeldObj.transform.SetParent(ItemController.throwParent);
             
             Invoke("MakeObjectReadyToThrow", .2f  * Time.deltaTime);
-            //MakeObjectReadyToThrow();
         });
 
         returnFromSelectedItemButton.onClick.AddListener(() =>
